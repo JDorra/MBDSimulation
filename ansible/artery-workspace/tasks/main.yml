@@ -1,43 +1,89 @@
----
-- name: install Artery dependencies
+- name: install Artery and build dependencies
   package:
       name: "{{ packages }}"
       state: present
   vars:
-      packages:
-          - cmake
-          - cmake-curses-gui
-          - g++
-          - git
-          - libboost-dev
-          - libboost-date-time-dev
-          - libboost-system-dev
-          - libcrypto++-dev
-          - libgeographic-dev
-          - libpython3-dev
-          - libssl-dev
-          - python3-distutils
-          - sumo
+    packages:
+      - cmake
+      - cmake-curses-gui
+      - g++
+      - git
+      - libboost-dev
+      - libboost-date-time-dev
+      - libboost-system-dev
+      - libcrypto++-dev
+      - libgeographic-dev
+      - libpython3-dev
+      - libssl-dev
+      - python3-distutils
+      - sumo
+      - rapidjson-dev # Required for MBDSimulation
+      - libtool       # Required for building asn1c
+      - automake      # Required for building asn1c
+      - bison         # Required for building asn1c
+      - flex          # Required for building asn1c
+  become: yes
+
+- name: install xtl from source (compatible with CMake 3.13)
+  shell: |
+    rm -rf /tmp/xtl
+    git clone https://github.com/xtensor-stack/xtl.git /tmp/xtl
+    cd /tmp/xtl && git checkout 0.6.23
+    mkdir -p build && cd build
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+    make install
+  args:
+    creates: /usr/local/share/cmake/xtl/xtlConfig.cmake
+  become: yes
+
+- name: install xtensor from source (compatible with CMake 3.13)
+  shell: |
+    rm -rf /tmp/xtensor
+    git clone https://github.com/xtensor-stack/xtensor.git /tmp/xtensor
+    cd /tmp/xtensor && git checkout 0.21.10
+    mkdir -p build && cd build
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_PREFIX_PATH=/usr/local
+    make install
+  args:
+    creates: /usr/local/lib/cmake/xtensor/xtensorConfig.cmake
+  become: yes
+
+- name: install asn1c v0.9.29 from source
+  shell: |
+    rm -rf /tmp/asn1c
+    git clone https://github.com/vlm/asn1c.git /tmp/asn1c
+    cd /tmp/asn1c
+    autoreconf -iv && ./configure && make && make install
+  args:
+    creates: /usr/local/bin/asn1c
   become: yes
 
 - name: clone Artery repository
   git:
     repo: /vagrant/.git
-    dest: "{{ ansible_user_dir }}/artery"
+    dest: "{{ artery_source_dir }}"
     clone: yes
     recursive: yes
     remote: vagrant
 
+- name: fix deprecated xt::xadapt API in F2MD sources
+  shell: |
+    grep -rl "xt::xadapt" {{ artery_source_dir }}/src/artery/application/F2MD --include="*.cc" \
+    | xargs -r sed -i '/#include/! s/xt::xadapt/xt::adapt/g'
+  args:
+    executable: /bin/bash
+  failed_when: false
+
 - name: add 'origin' remote to upstream repository
   git_config:
-    repo: "{{ ansible_user_dir }}/artery"
+    repo: "{{ artery_source_dir }}"
     scope: local
     name: remote.origin.url
     value: https://github.com/riebl/artery.git
 
 - name: configure refs to fetch for 'origin'
   git_config:
-    repo: "{{ ansible_user_dir }}/artery"
+    repo: "{{ artery_source_dir }}"
     scope: local
     name: remote.origin.fetch
     value: +refs/heads/*:refs/remotes/origin/*
@@ -50,14 +96,8 @@
 - name: configure Artery build directory
   command: cmake {{ artery_source_dir }}
   args:
-      chdir: "{{ artery_build_dir }}"
-      creates: "{{ artery_build_dir }}/Makefile"
-
-- name: clean build directory
-  make:
-      chdir: "{{ artery_build_dir }}"
-      target: clean
-  when: omnetpp_current.changed
+    chdir: "{{ artery_build_dir }}"
+    creates: "{{ artery_build_dir }}/Makefile"
 
 - name: build Artery
   make:
