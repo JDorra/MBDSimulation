@@ -885,8 +885,11 @@ void MDCpmAttack::launchAttack(cpAttackTypes::Attacks myAttackType, CpmPayload_t
  * @param poc PerceivedObjectContainer
  */
 void MDCpmAttack::InitSelectedStationID(PerceivedObjectContainer *poc){
-    const int RandomIndx = genLib.RandomInt(0, poc->perceivedObjects.list.count-1);
-    cout << "RandomIndx:::" << RandomIndx << endl;
-    SelectedStationID = *poc->perceivedObjects.list.array[RandomIndx]->objectId;
-    cout << "SelectedStationID:::" << SelectedStationID << endl;
+    if (poc->perceivedObjects.list.count > 0) {
+        const int RandomIndx = genLib.RandomInt(0, poc->perceivedObjects.list.count-1);
+        SelectedStationID = *poc->perceivedObjects.list.array[RandomIndx]->objectId;
+        std::cout << "SelectedStationID:::" << SelectedStationID << std::endl; 
+    } else {
+        SelectedStationID = 0; // Or some other "none" value
+    }
 }
