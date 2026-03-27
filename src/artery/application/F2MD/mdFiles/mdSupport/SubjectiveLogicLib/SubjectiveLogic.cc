@@ -94,8 +94,8 @@ ObjectOpinion SubjectiveLogicFusion::AvgTrustFusion(vector<ObjectOpinion> EgoTru
         }
         vector<std::size_t> shape_TempListAdvice = {1,TempListAdvice.size()};
         vector<std::size_t> shape_TempListProdresU = {1,TempListProdresU.size()};
-        auto new_TempListAdvice = xt::xadapt(TempListAdvice,shape_TempListAdvice);
-        auto new_TempListProdresU = xt::xadapt(TempListProdresU,shape_TempListProdresU);
+        auto new_TempListAdvice = xt::adapt(TempListAdvice,shape_TempListAdvice);
+        auto new_TempListProdresU = xt::adapt(TempListProdresU,shape_TempListProdresU);
         auto _sumTempListAdvice = xt::sum(new_TempListAdvice,{1})();
         auto _sumTempListProdresU = xt::sum(new_TempListProdresU)();
         AvgTrustFusion_advice = _sumTempListAdvice / _sumTempListProdresU;
@@ -111,7 +111,7 @@ ObjectOpinion SubjectiveLogicFusion::AvgTrustFusion(vector<ObjectOpinion> EgoTru
             TempListAdvice.push_back(i.GetAdvice());
         }
         vector<std::size_t> shape_TempListAdvice = {1,TempListAdvice.size()};
-        auto new_TempListAdvice = xt::xadapt(TempListAdvice,shape_TempListAdvice);
+        auto new_TempListAdvice = xt::adapt(TempListAdvice,shape_TempListAdvice);
         auto _sumTempListAdvice = xt::sum(new_TempListAdvice,{1})();
         AvgTrustFusion_advice = _sumTempListAdvice / SLtd.size();
         AvgTrustFusion_u = 0;
@@ -175,8 +175,8 @@ ObjectOpinion SubjectiveLogicFusion::CumTrustFusion(vector<ObjectOpinion> EgoTru
         }
         vector<std::size_t> shape_TempListAdvice = {1,TempListAdvice.size()};
         vector<std::size_t> shape_TempListProdresU = {1,TempListProdresU.size()};
-        auto new_TempListAdvice = xt::xadapt(TempListAdvice,shape_TempListAdvice);
-        auto new_TempListProdresU = xt::xadapt(TempListProdresU,shape_TempListProdresU);
+        auto new_TempListAdvice = xt::adapt(TempListAdvice,shape_TempListAdvice);
+        auto new_TempListProdresU = xt::adapt(TempListProdresU,shape_TempListProdresU);
         auto _sumTempListAdvice = xt::sum(new_TempListAdvice,{1})();
         auto _sumTempListProdresU = xt::sum(new_TempListProdresU)();
         CumTrustFusion_advice = _sumTempListAdvice / (_sumTempListProdresU - (SLtd.size()-1) * TempProdU);
@@ -193,7 +193,7 @@ ObjectOpinion SubjectiveLogicFusion::CumTrustFusion(vector<ObjectOpinion> EgoTru
             TempListAdvice.push_back(i.GetAdvice());
         }        
         vector<std::size_t> shape_TempListAdvice = {1,TempListAdvice.size()};
-        auto new_TempListAdvice = xt::xadapt(TempListAdvice,shape_TempListAdvice);
+        auto new_TempListAdvice = xt::adapt(TempListAdvice,shape_TempListAdvice);
         auto _sumTempListAdvice = xt::sum(new_TempListAdvice,{1})();
         CumTrustFusion_advice = _sumTempListAdvice / SLtd.size();
         CumTrustFusion_u = 0;
